@@ -5,6 +5,10 @@ import Header from "../components/Header";
 import Carousel from 'react-native-snap-carousel';
 import { Avatar, Button } from 'react-native-paper';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getProductDetails } from '../redux/actions/productAction';
+import { useIsFocused } from '@react-navigation/native';
 
 const SLIDER_WIDTH = Dimensions.get("window").width;
 const ITEM_WIDTH = SLIDER_WIDTH;
@@ -21,24 +25,14 @@ export const iconOptions = {
 
 const ProductDetails = ({ route: { params } }) => {
 
-    const name = "Macbook Pro";
-    const price = 3456;
-    const stock = 5;
-    const description = "macbook pro description here";
-
-    const [quantity, setQuantity] = useState(1);
+    const { product: { name, price, stock, description, images },
+    } = useSelector((state) => state.product);
 
     const isCarousel = useRef(null);
-    const images = [
-        {
-            id: "ejfiowehfioewhfwe",
-            url: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-        },
-        {
-            id: "fwfssfsff",
-            url: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-        },
-    ];
+    const [quantity, setQuantity] = useState(1);
+
+    const dispatch = useDispatch();
+    const isFocused = useIsFocused();
 
     const incrementQty = () => {
         if (stock <= quantity) return;
@@ -62,6 +56,10 @@ const ProductDetails = ({ route: { params } }) => {
             text1: "Added To Cart"
         })
     }
+
+    useEffect(() => {
+        dispatch(getProductDetails(params.id));
+    }, [dispatch, params.id, isFocused]);
 
     return (
         <View style={{ ...defaultStyle, padding: 0, backgroundColor: colors.color1 }}>

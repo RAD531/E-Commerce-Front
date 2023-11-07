@@ -4,6 +4,10 @@ import { colors, defaultStyle, formHeading, inputOptions, formStyles as styles, 
 import { Avatar, Button, TextInput } from 'react-native-paper';
 import Footer from '../components/Footer';
 import PageHeading from '../components/PageHeading';
+import mime from "mime";
+import { useDispatch } from 'react-redux';
+import { register } from '../redux/actions/userActions';
+import { useMessageAndErrorUser } from '../utils/hooks';
 
 const SignUp = ({ navigation, route }) => {
     const [avatar, setAvatar] = useState("");
@@ -15,15 +19,33 @@ const SignUp = ({ navigation, route }) => {
     const [country, setCountry] = useState("");
     const [pinCode, setPinCode] = useState("");
 
-    const loading = false;
+    const dispatch = useDispatch();
+    const loading = useMessageAndErrorUser(navigation, dispatch, "profile");
+
     const disableBtn = !name || !email || !password || !address || !city || !country || !pinCode;
 
     const submitHandler = () => {
-        alert("Yeah");
-        navigation.navigate("verify");
+        const myForm = new FormData();
+        myForm.append("name", name);
+        myForm.append("email", email);
+        myForm.append("password", password);
+        myForm.append("address", address);
+        myForm.append("city", city);
+        myForm.append("country", country);
+        myForm.append("pinCode", pinCode);
+
+        if (avatar !== "") {
+            myForm.append("file", {
+                uri: avatar,
+                type: mime.getType(avatar),
+                name: avatar.split("/").pop(),
+            });
+        }
+
+        dispatch(register(myForm));
     };
 
-    
+
     useEffect(() => {
         if (route.params?.image) {
             setAvatar(route.params.image);
@@ -48,7 +70,7 @@ const SignUp = ({ navigation, route }) => {
                             </Button>
                         </TouchableOpacity>
 
-                        <TextInput {...inputOptions} placeholder='Name' value={email} onChangeText={setName} />
+                        <TextInput {...inputOptions} placeholder='Name' value={name} onChangeText={setName} />
                         <TextInput {...inputOptions} placeholder='Email' value={email} onChangeText={setEmail} keyboardType='email-address' />
                         <TextInput {...inputOptions} placeholder='Password' value={password} onChangeText={setPassword} secureTextEntry={true} />
                         <TextInput {...inputOptions} placeholder='Address' value={address} onChangeText={setAddress} />

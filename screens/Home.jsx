@@ -5,46 +5,26 @@ import Header from "../components/Header";
 import { Avatar, Button } from 'react-native-paper';
 import SearchModal from '../components/SearchModal';
 import ProductCard from '../components/ProductCard';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Footer from '../components/Footer';
 import Heading from '../components/Heading';
-
-const categories = [{ category: "Nice", _id: "kdfdfndk" }, { category: "Nice2", _id: "rgdgdgd" }, { category: "Nice3", _id: "daFSGFJ" }, { category: "Nice4", _id: "qeqeqeqe" }, { category: "Nice5", _id: "wqeqeqeqe" }, { category: "Nice6", _id: "fdhdhdhd" }];
-export const products = [
-    {
-        price: 23123,
-        stock: 23,
-        name: "Sample",
-        _id: "hdjvhdsjkfjdksfjksdf",
-        category: "IDK",
-        images: [
-            {
-                url: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-            },
-        ],
-    },
-
-    {
-        price: 23123,
-        stock: 23,
-        name: "Macbook",
-        _id: "gsgggsgs",
-        category: "Laptop",
-        images: [
-            {
-                url: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-            },
-        ],
-    },
-];
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllProducts } from "../redux/actions/productAction";
+import { useSetCategories } from '../utils/hooks';
 
 const Home = () => {
 
     const [category, setCategory] = useState("");
     const [activeSearch, setActiveSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [categories, setCategories] = useState([]);
 
     const navigate = useNavigation();
+    const dispatch = useDispatch();
+    const isFocused = useIsFocused();
+
+    const { products } = useSelector((state) => state.product)
 
     const categoryButtonHandler = (id) => {
         setCategory(id);
@@ -53,6 +33,18 @@ const Home = () => {
     const addToCardHandler = (id) => {
         console.log("Add to Cart", id);
     };
+
+    useSetCategories(setCategories, isFocused);
+
+    useEffect(() => {
+        const timeOutId = setTimeout(() => {
+            dispatch(getAllProducts(searchQuery, category));
+        }, 500);
+
+        return () => {
+            clearTimeout(timeOutId);
+        }
+    }, [dispatch, searchQuery, category, isFocused]);
 
     return (
         <>
@@ -68,7 +60,7 @@ const Home = () => {
                 <View style={{ paddingTop: 100, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
 
                     {/* Heading */}
-                    <Heading text1='Our' text2='Products'/>
+                    <Heading text1='Our' text2='Products' />
 
                     {/* Search Bar */}
                     <View>
@@ -101,9 +93,9 @@ const Home = () => {
                     </ScrollView>
                 </View>
 
-                <Footer activeRoute={"home"}/>
-
             </View>
+
+            <Footer activeRoute={"home"} />
         </>
     )
 }

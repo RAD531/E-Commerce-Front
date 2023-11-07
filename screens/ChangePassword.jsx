@@ -4,15 +4,21 @@ import { colors, defaultStyle, formHeading, inputOptions, formStyles as styles }
 import { Button, TextInput } from 'react-native-paper';
 import Header from "../components/Header";
 import PageHeading from '../components/PageHeading';
+import { useDispatch } from 'react-redux';
+import { updatePassword } from '../redux/actions/passwordActions';
+import { useMessageAndErrorGeneral } from "../utils/hooks"
 
-const ChangePassword = ({ navigation }) => {
+const ChangePassword = () => {
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
 
-    const loading = false;
+    const dispatch = useDispatch();
+    const loading = useMessageAndErrorGeneral(dispatch, "password");
 
     const submitHandler = () => {
-        alert("Yeah");
+        dispatch(updatePassword(oldPassword, newPassword));
+        setOldPassword("");
+        setNewPassword("");
     };
 
     return (
@@ -21,7 +27,7 @@ const ChangePassword = ({ navigation }) => {
             <Header back={true} />
 
             {/* Heading */}
-            <PageHeading text={"Change Password"} paddingTopStyle={70}/>
+            <PageHeading text={"Change Password"} paddingTopStyle={70} />
 
             <View style={styles.container}>
                 <TextInput {...inputOptions} placeholder='Old Password' value={oldPassword} onChangeText={setOldPassword} secureTextEntry={true} />

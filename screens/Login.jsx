@@ -1,42 +1,19 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { colors, defaultStyle, formHeading, inputOptions, formStyles as styles } from '../styles/styles';
+import React, { useState } from 'react'
+import { colors, defaultStyle, inputOptions, formStyles as styles } from '../styles/styles';
 import { Button, TextInput } from 'react-native-paper';
 import Footer from '../components/Footer';
 import PageHeading from '../components/PageHeading';
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { login } from '../redux/actions/userActions';
-import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { useMessageAndErrorUser } from '../utils/hooks';
 
 const Login = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const dispatch = useDispatch();
-    const { loading, message, error, isAuthenticated } = useSelector((state) => state.user);
-
-    useEffect(() => {
-        if (error) {
-            Toast.show({
-                type: "error",
-                text1: error,
-            });
-            dispatch({
-                type: "clearError",
-            });
-        }
-
-        if (message) {
-            navigation.navigate("profile");
-            Toast.show({
-                type: "success",
-                text1: message,
-            });
-            dispatch({
-                type: "clearError",
-            });
-        }
-    }, [error, message, dispatch]);
+    const loading = useMessageAndErrorUser(navigation, dispatch, "profile");
 
     const submitHandler = () => {
         dispatch(login(email, password));
@@ -50,7 +27,7 @@ const Login = ({ navigation }) => {
                 <PageHeading text={"Login"} />
 
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <View style={styles.container}>
+                    <View style={{ ...styles.container, minHeight: 550 }}>
                         <TextInput {...inputOptions} placeholder='Email' value={email} onChangeText={setEmail} keyboardType='email-address' />
                         <TextInput {...inputOptions} placeholder='Password' value={password} onChangeText={setPassword} secureTextEntry={true} />
 
