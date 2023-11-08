@@ -3,18 +3,21 @@ import React from 'react'
 import { colors, defaultStyle } from '../styles/styles'
 import Header from "../components/Header";
 import Heading from '../components/Heading';
-import { cartItems } from './Cart';
 import ConfirmOrderItem from '../components/ConfirmOrderItem';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from 'react-native-paper';
+import { useSelector } from 'react-redux';
+import { useState } from 'react';
 
 const ConfirmOrder = () => {
 
     const navigate = useNavigation();
-    const itemsPrice = 4000;
-    const shippingCharges = 200;
-    const tax = 0.18 * itemsPrice;
-    const totalAmount = itemsPrice + shippingCharges + tax;
+
+    const { cartItems } = useSelector((state) => state.cart);
+    const [itemsPrice] = useState(cartItems.reduce((prev, curr) => prev + curr.quantity * curr.price, 0));
+    const [shippingCharges] = useState(itemsPrice > 10 ? 0 : 200);
+    const [tax] = useState(Number((0.18 * itemsPrice).toFixed()));
+    const [totalAmount] = useState(itemsPrice + shippingCharges + tax);
 
     return (
         <View style={{ ...defaultStyle, padding: 0 }}>
@@ -38,7 +41,7 @@ const ConfirmOrder = () => {
             <PriceTag heading={"Total Amount"} value={totalAmount} />
 
             <TouchableOpacity onPress={() => navigate.navigate("payment", { itemsPrice, shippingCharges, tax, totalAmount })}>
-                <Button style={{backgroundColor: colors.color3, borderRadius: 100, padding: 5, margin: 20, marginBottom: 40}} textColor={colors.color2} icon={"chevron-right"}>
+                <Button style={{ backgroundColor: colors.color3, borderRadius: 100, padding: 5, margin: 20, marginBottom: 40 }} textColor={colors.color2} icon={"chevron-right"}>
                     <Text>
                         Payment
                     </Text>

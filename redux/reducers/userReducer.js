@@ -45,6 +45,7 @@ export const userReducer = createReducer({}, (builder) => {
             state.error = action.payload;
         })
         .addCase("loadUserFail", (state, action) => {
+            console.log("load user fail has been called: " + state.error);
             state.loading = false;
             state.isAuthenticated = false;
             state.error = action.payload;

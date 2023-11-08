@@ -6,52 +6,47 @@ import Heading from '../components/Heading';
 import { Button } from 'react-native-paper';
 import CartItem from '../components/CartItem';
 import { useNavigation } from '@react-navigation/native';
-
-export const cartItems = [
-    {
-        name: "Macbook",
-        image: "https://images.pexels.com/photos/238118/pexels-photo-238118.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        product: "ihfhgrehgh",
-        stock: 3,
-        price: 49999,
-        quantity: 2
-    },
-    {
-        name: "Shoes",
-        image: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        product: "dfgegrewgwg",
-        stock: 5,
-        price: 233,
-        quantity: 5
-    },
-    {
-        name: "Shoes",
-        image: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        product: "egasgsgs",
-        stock: 5,
-        price: 233,
-        quantity: 5
-    },
-    {
-        name: "Shoes",
-        image: "https://images.pexels.com/photos/19090/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        product: "jykukuk",
-        stock: 5,
-        price: 233,
-        quantity: 5
-    }
-];
+import { useDispatch, useSelector } from 'react-redux';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 const Cart = () => {
 
     const navigate = useNavigation();
+    const dispatch = useDispatch();
 
-    const incrementHandler = () => {
+    const { cartItems } = useSelector((state) => state.cart);
 
+    const incrementHandler = (id, name, price, image, stock, quantity) => {
+        const newQty = quantity + 1;
+        if (stock <= quantity)
+            return Toast.show({
+                type: "error",
+                text1: `You have reached the maximum stock of ${name}`,
+            });
+
+        dispatch({
+            type: "addToCart",
+            payload: {
+                product: id, name, price, image, stock, quantity: newQty
+            },
+        });
+
+        Toast.show({
+            type: "success",
+            text1: "Added To Cart",
+        })
     };
 
-    const decrementHandler = () => {
+    const decrementHandler = (id, name, price, image, stock, quantity) => {
+        const newQty = quantity - 1;
+        if (1 >= quantity) return dispatch({ type: "removeFromCart", payload: id })
 
+        dispatch({
+            type: "addToCart",
+            payload: {
+                product: id, name, price, image, stock, quantity: newQty
+            },
+        });
     };
 
     return (
@@ -65,16 +60,16 @@ const Cart = () => {
             <View style={{ paddingVertical: 20, flex: 1 }}>
                 <ScrollView showsVerticalScrollIndicator={false}>
                     {
-                        cartItems.map((i, index) => (
-                            <CartItem navigate={navigate} key={i.product} id={i.product} name={i.name} stock={i.name} amount={i.price} qty={i.quantity} imgSrc={i.image} index={index} incrementHandler={incrementHandler} decrementHandler={decrementHandler} />
-                        ))
+                        cartItems.length > 0 ? cartItems.map((i, index) => (
+                            <CartItem navigate={navigate} key={i.product} id={i.product} name={i.name} stock={i.stock} amount={i.price} qty={i.quantity} imgSrc={i.image} index={index} incrementHandler={incrementHandler} decrementHandler={decrementHandler} />
+                        )) : <Text style={{ textAlign: "center", fontSize: 18 }}>No Items Yet</Text>
                     }
                 </ScrollView>
             </View>
 
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 35 }}>
-                <Text>5 Items</Text>
-                <Text>£5</Text>
+                <Text>{cartItems.length === 1 ? "1 Item" : `${cartItems.length} Items`}</Text>
+                <Text>£{cartItems.reduce((prev, curr) => prev + curr.quantity * curr.price, 0)}</Text>
             </View>
 
             <TouchableOpacity onPress={cartItems.length > 0 ? () => navigate.navigate("confirmorder") : null}>

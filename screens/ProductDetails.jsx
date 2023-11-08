@@ -35,7 +35,10 @@ const ProductDetails = ({ route: { params } }) => {
     const isFocused = useIsFocused();
 
     const incrementQty = () => {
-        if (stock <= quantity) return;
+        if (stock <= quantity) return Toast.show({
+            type: "error",
+            text1: `You have reached the maximum stock of ${name}`,
+        });
         setQuantity((prev) => prev + 1);
     }
 
@@ -45,17 +48,23 @@ const ProductDetails = ({ route: { params } }) => {
     }
 
     const addToCartHandler = () => {
-        if (stock === 0) return Toast.show({
-            type: "error",
-            text1: "Out Of Stock",
-            text2: "this is text 2"
+        if (stock === 0)
+            return Toast.show({
+                type: "error",
+                text1: "Out of Stock",
+            })
+        dispatch({
+            type: "addToCart",
+            payload: {
+                product: params.id, name, price, image: images[0]?.url, stock, quantity
+            },
         });
 
         Toast.show({
             type: "success",
-            text1: "Added To Cart"
+            text1: "Added To Cart",
         })
-    }
+    };
 
     useEffect(() => {
         dispatch(getProductDetails(params.id));
