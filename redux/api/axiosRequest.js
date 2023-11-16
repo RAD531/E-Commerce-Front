@@ -6,7 +6,7 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
-export const axiosApiRequest = async (method, url, data, contentType, dispatch, dispatchTypes, returnProperty) => {
+export const axiosApiRequest = async (method, url, body, contentType, dispatch, dispatchTypes, returnProperty, useNoDispatchOnSuccess) => {
     const { requestDispatch, successDispatch, errorDispatch } = dispatchTypes;
     try {
         // dispatch first request
@@ -25,18 +25,29 @@ export const axiosApiRequest = async (method, url, data, contentType, dispatch, 
             headers,
         };
 
-        if (data) requestConfig.data = data; // if data, include
+        if (body) requestConfig.data = body; // if data, include
 
         // make request
         const { data } = await axiosInstance.request({ ...requestConfig });
 
+        // if we have indicated to not return a dispatch, then return value
+        if (useNoDispatchOnSuccess) {
+            return returnProperty ? data[returnProperty] : data
+        }
+
         // dispatch success
-        dispatch({ type: successDispatch, payload: data[returnProperty]});
+        dispatch({ type: successDispatch, payload: returnProperty ? data[returnProperty] : data });
     }
 
     catch (error) {
-
         // dispatch error
-        dispatch({ type: errorDispatch, payload: error.response.data.message });
+        let errorMessage = "An error occurred";
+        if (error.response.data.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        dispatch({ type: errorDispatch, payload: errorMessage });
     }
 }

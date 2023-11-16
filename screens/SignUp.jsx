@@ -1,13 +1,13 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { colors, defaultStyle, formHeading, inputOptions, formStyles as styles, defaultImg } from '../styles/styles';
+import { colors, defaultStyle, inputOptions, formStyles as styles, defaultImg } from '../styles/styles';
 import { Avatar, Button, TextInput } from 'react-native-paper';
 import Footer from '../components/Footer';
 import PageHeading from '../components/PageHeading';
 import mime from "mime";
 import { useDispatch } from 'react-redux';
-import { register } from '../redux/actions/userActions';
-import { useMessageAndErrorUser } from '../utils/hooks';
+import { useRegisterUserMutation } from '../redux/api/apiSlices/userApiSlice';
+import { setAuthenticationStatus } from '../redux/slices/userSlice';
 
 const SignUp = ({ navigation, route }) => {
     const [avatar, setAvatar] = useState("");
@@ -20,11 +20,11 @@ const SignUp = ({ navigation, route }) => {
     const [pinCode, setPinCode] = useState("");
 
     const dispatch = useDispatch();
-    const loading = useMessageAndErrorUser(navigation, dispatch, "profile");
+    const [registerUser, { isLoading }] = useRegisterUserMutation();
 
     const disableBtn = !name || !email || !password || !address || !city || !country || !pinCode;
 
-    const submitHandler = () => {
+    const submitHandler = async () => {
         const myForm = new FormData();
         myForm.append("name", name);
         myForm.append("email", email);
@@ -42,7 +42,13 @@ const SignUp = ({ navigation, route }) => {
             });
         }
 
-        dispatch(register(myForm));
+        try {
+            await registerUser(myForm).unwrap();
+            dispatch(setAuthenticationStatus(true));
+            navigation.navigate("profile");
+        }
+        catch (error) {
+        }
     };
 
 
@@ -78,7 +84,7 @@ const SignUp = ({ navigation, route }) => {
                         <TextInput {...inputOptions} placeholder='Country' value={country} onChangeText={setCountry} />
                         <TextInput {...inputOptions} placeholder='Pin Code' value={pinCode} onChangeText={setPinCode} />
 
-                        <Button loading={loading} textColor={colors.color2} disabled={disableBtn} style={styles.btn} onPress={submitHandler}>
+                        <Button loading={isLoading} textColor={colors.color2} disabled={disableBtn} style={styles.btn} onPress={submitHandler}>
                             <Text>Sign Up</Text>
                         </Button>
 

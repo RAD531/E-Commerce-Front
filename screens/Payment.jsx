@@ -6,16 +6,14 @@ import Heading from '../components/Heading';
 import { RadioButton, Button } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { paymentOrder, placeOrder } from '../redux/actions/orderActions';
-import { useMessageAndErrorGeneral } from "../utils/hooks";
-import { useStripe } from "@stripe/stripe-react-native";
+import { useMessageAndError } from "../utils/hooks";
 
 const Payment = ({ navigation, route }) => {
 
     const Payment = [paymentMethod, setPaymentMethod] = useState("COD");
 
     const dispatch = useDispatch();
-    const stripe = useStripe();
-    const loading = useMessageAndErrorGeneral(dispatch, "order", navigation, "profile", () => ({ type: "clearCart" }));
+    const loading = useMessageAndError(dispatch, navigation, "profile", true, "order", () => ({ type: "clearCart" }));
 
     const { isAuthenticated, user } = useSelector((state) => state.user);
     // const { paymentClientSecret } = useSelector((state) => state.order);
@@ -25,7 +23,7 @@ const Payment = ({ navigation, route }) => {
         navigation.navigate("login");
     };
 
-    const codHandler = (paymentInfo) => {
+    const orderAndPaymentHandler = () => {
         const shippingInfo = {
             address: user.address,
             city: user.city,
@@ -39,11 +37,6 @@ const Payment = ({ navigation, route }) => {
         const totalAmount = route.params.totalAmount;
 
         dispatch(placeOrder(cartItems, shippingInfo, paymentMethod, itemsPrice, taxPrice, shippingCharges, totalAmount, paymentInfo));
-    };
-
-    const onlineHandler = async () => {
-        const totalAmount = route.params.totalAmount;
-        await dispatch(paymentOrder(totalAmount));
     };
 
     return (
@@ -65,7 +58,7 @@ const Payment = ({ navigation, route }) => {
                 </RadioButton.Group>
             </View>
 
-            <TouchableOpacity onPress={!isAuthenticated ? redirectToLogin : paymentMethod === "COD" ? () => codHandler() : onlineHandler}>
+            <TouchableOpacity onPress={!isAuthenticated ? redirectToLogin : () => orderAndPaymentHandler()}>
                 <Button loading={loading} disabled={loading} style={styles.btn} textColor={colors.color2} icon={paymentMethod === "COD" ? "check-circle" : "circle-multiple-outline"}>
                     {
                         paymentMethod === "COD" ? "Place Order" : "Pay"

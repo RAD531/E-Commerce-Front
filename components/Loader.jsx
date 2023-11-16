@@ -1,12 +1,26 @@
-import { View, Text } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import React from 'react'
 import { ActivityIndicator } from 'react-native-paper'
 import { colors } from '../styles/styles'
 
-const Loader = () => {
+const Loader = ({ size = "large", color = colors.color1 }) => {
     return (
-        <ActivityIndicator style={{ top: "50%", position: "absolute", alignSelf: "center" }} size={200} color={colors.color3} />
+        <View style={[styles.container, styles.horizontal]}>
+            <ActivityIndicator size={size} color={color} />
+        </View>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    horizontal: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        padding: 10,
+    },
+});
 
 export default Loader

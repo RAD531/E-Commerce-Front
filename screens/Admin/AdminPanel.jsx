@@ -1,4 +1,4 @@
-import { View, Text, ScrollView } from 'react-native'
+import { View, ScrollView } from 'react-native'
 import React from 'react'
 import { colors, defaultStyle } from '../../styles/styles'
 import Header from "../../components/Header";
@@ -6,12 +6,15 @@ import PageHeading from '../../components/PageHeading';
 import Loader from '../../components/Loader';
 import ButtonBox from '../../components/ButtonBox';
 import ProductListHeading from '../../components/ProductListHeading';
-import { products } from '../Home';
 import ProductListItem from '../../components/ProductListItem';
 import Chart from '../../components/Chart';
+import { useGetAdminProductsQuery } from '../../redux/api/apiSlices/productApiSlice';
 
 const AdminPanel = ({ navigation }) => {
-  const loading = false;
+  const { data: productsData, isLoading: isProductsLoading } = useGetAdminProductsQuery();
+  const products = productsData?.products;
+  const outOfStock = productsData?.outOfStock;
+  const inStock = productsData?.inStock;
 
   const navigationHandler = (text) => {
     switch (text) {
@@ -42,10 +45,10 @@ const AdminPanel = ({ navigation }) => {
       {/* Page Heading */}
       <PageHeading text={"Admin Panel"} paddingTopStyle={70} />
 
-      {loading ? <Loader /> : (
+      {isProductsLoading ? <Loader /> : (
         <>
           <View style={{ backgroundColor: colors.color3, borderRadius: 20, alignItems: "center" }}>
-            <Chart inStock={12} outOfStock={2} />
+            <Chart inStock={inStock} outOfStock={outOfStock} />
           </View>
 
           <View>
@@ -62,7 +65,7 @@ const AdminPanel = ({ navigation }) => {
             <View>
               {
                 products.map((item, index) => (
-                  <ProductListItem key={item._id} i={index} id={item._id} price={item.price} stock={item.stock} name={item.name} category={item.category} imgSrc={item.images[0].url} navigate={navigation} deleteHandler={deleteProductHandler} />
+                  <ProductListItem key={item._id} i={index} id={item._id} price={item.price} stock={item.stock} name={item.name} category={item.category?.category} imgSrc={item.images[0].url} navigate={navigation} deleteHandler={deleteProductHandler} />
                 ))
               }
             </View>

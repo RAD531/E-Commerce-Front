@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import Home from './screens/Home';
 import ProductDetails from './screens/ProductDetails';
-import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import Cart from './screens/Cart';
 import ConfirmOrder from './screens/ConfirmOrder';
 import Payment from './screens/Payment';
@@ -22,17 +22,29 @@ import UpdateProduct from './screens/Admin/UpdateProduct';
 import NewProduct from './screens/Admin/NewProduct';
 import ProductImages from './screens/Admin/ProductImages';
 import Camera from './screens/Camera';
-import { useDispatch } from 'react-redux';
-import { loadUser } from './redux/actions/userActions';
+import { useSelector } from 'react-redux';
+import ToastComponent from './components/ToastComponent';
+import { useGetUserQuery } from './redux/api/apiSlices/userApiSlice';
 
 const Stack = createNativeStackNavigator();
 
 const Main = () => {
+  
+  try {
+    useGetUserQuery().unwrap();
+  }
+  catch {
+  }
 
-  const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(loadUser());
-  }, [dispatch]);
+  const { error, message } = useSelector((state) => state.toast);
+  const toastConfig = {
+    success: (props) => (
+      <BaseToast {...props} style={{ borderLeftColor: 'green' }} text1NumberOfLines={10} />
+    ),
+    error: (props) => (
+      <ErrorToast {...props} style={{ borderLeftColor: 'red' }} text1NumberOfLines={10} />
+    ),
+  };
 
   return (
     <NavigationContainer>
@@ -65,7 +77,8 @@ const Main = () => {
 
         </Stack.Group>
       </Stack.Navigator>
-      <Toast position='bottom' bottomOffset={20} />
+      <ToastComponent error={error} message={message} />
+      <Toast position='bottom' bottomOffset={20} config={toastConfig} />
     </NavigationContainer>
   )
 }

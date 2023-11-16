@@ -19,7 +19,7 @@ const ProductCard = ({ stock, name, price, image, id, addToCardHandler, i, navig
                 <TouchableOpacity style={{ backgroundColor: i % 2 === 0 ? colors.color2 : colors.color3, borderRadius: 0, paddingVertical: 5, borderBottomRightRadius: 20, borderBottomLeftRadius: 20, width: "100%" }}>
                     <Button onPress={() => addToCardHandler(id, name, price, image, stock)} textColor={i % 2 === 0 ? colors.color1 : colors.color2}>
                         <Text>
-                            Add To Cart
+                            {stock < 1 ? "Out of Stock" : "Add To Cart"}
                         </Text>
                     </Button>
                 </TouchableOpacity>

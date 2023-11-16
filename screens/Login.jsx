@@ -5,18 +5,24 @@ import { Button, TextInput } from 'react-native-paper';
 import Footer from '../components/Footer';
 import PageHeading from '../components/PageHeading';
 import { useDispatch } from "react-redux";
-import { login } from '../redux/actions/userActions';
-import { useMessageAndErrorUser } from '../utils/hooks';
+import { useLoginUserMutation } from '../redux/api/apiSlices/userApiSlice';
+import { setAuthenticationStatus } from '../redux/slices/userSlice';
 
 const Login = ({ navigation }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const dispatch = useDispatch();
-    const loading = useMessageAndErrorUser(navigation, dispatch, "profile");
+    const [loginUser, { isLoading }] = useLoginUserMutation();
 
-    const submitHandler = () => {
-        dispatch(login(email, password));
+    const submitHandler = async () => {
+        try {
+            await loginUser({ email, password }).unwrap();
+            dispatch(setAuthenticationStatus(true));
+            navigation.navigate("profile");
+        }
+        catch (error) {
+        }
     };
 
     return (
@@ -35,7 +41,7 @@ const Login = ({ navigation }) => {
                             <Text style={styles.forget}>Forgot Password</Text>
                         </TouchableOpacity>
 
-                        <Button loading={loading} textColor={colors.color2} disabled={email === "" || password === ""} style={styles.btn} onPress={submitHandler}>
+                        <Button loading={isLoading} textColor={colors.color2} disabled={email === "" || password === ""} style={styles.btn} onPress={submitHandler}>
                             <Text>Login</Text>
                         </Button>
 

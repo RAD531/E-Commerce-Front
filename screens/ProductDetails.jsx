@@ -5,10 +5,10 @@ import Header from "../components/Header";
 import Carousel from 'react-native-snap-carousel';
 import { Avatar, Button } from 'react-native-paper';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { getProductDetails } from '../redux/actions/productAction';
+import { useDispatch } from 'react-redux';
 import { useIsFocused } from '@react-navigation/native';
+import { useGetProductDetailsQuery } from '../redux/api/apiSlices/productApiSlice';
+import Loader from '../components/Loader';
 
 const SLIDER_WIDTH = Dimensions.get("window").width;
 const ITEM_WIDTH = SLIDER_WIDTH;
@@ -25,8 +25,8 @@ export const iconOptions = {
 
 const ProductDetails = ({ route: { params } }) => {
 
-    const { product: { name, price, stock, description, images },
-    } = useSelector((state) => state.product);
+    const { data, isLoading: isProductLoading } = useGetProductDetailsQuery(params.id);
+    const product = data?.product;
 
     const isCarousel = useRef(null);
     const [quantity, setQuantity] = useState(1);
@@ -35,9 +35,9 @@ const ProductDetails = ({ route: { params } }) => {
     const isFocused = useIsFocused();
 
     const incrementQty = () => {
-        if (stock <= quantity) return Toast.show({
+        if (product.stock <= quantity) return Toast.show({
             type: "error",
-            text1: `You have reached the maximum stock of ${name}`,
+            text1: `You have reached the maximum stock of ${product.name}`,
         });
         setQuantity((prev) => prev + 1);
     }
@@ -48,7 +48,7 @@ const ProductDetails = ({ route: { params } }) => {
     }
 
     const addToCartHandler = () => {
-        if (stock === 0)
+        if (product.stock === 0)
             return Toast.show({
                 type: "error",
                 text1: "Out of Stock",
@@ -56,7 +56,7 @@ const ProductDetails = ({ route: { params } }) => {
         dispatch({
             type: "addToCart",
             payload: {
-                product: params.id, name, price, image: images[0]?.url, stock, quantity
+                product: params.id, name: product.name, price: product.price, image: product.images[0]?.url, stock: product.stock, quantity: product.quantity
             },
         });
 
@@ -66,51 +66,51 @@ const ProductDetails = ({ route: { params } }) => {
         })
     };
 
-    useEffect(() => {
-        dispatch(getProductDetails(params.id));
-    }, [dispatch, params.id, isFocused]);
-
     return (
         <View style={{ ...defaultStyle, padding: 0, backgroundColor: colors.color1 }}>
             <Header back={true} />
 
-            {/* Carousel */}
-            <Carousel layout='tinder' sliderWidth={SLIDER_WIDTH} itemWidth={ITEM_WIDTH} ref={isCarousel} data={images} renderItem={CarouselCardItem} />
+            {isProductLoading ? <Loader /> : (
+                <>
+                    {/* Carousel */}
+                    <Carousel layout='tinder' sliderWidth={SLIDER_WIDTH} itemWidth={ITEM_WIDTH} ref={isCarousel} data={product.images} renderItem={CarouselCardItem} />
 
-            <View style={{ backgroundColor: colors.color2, padding: 35, flex: 1, marginTop: -380, borderTopLeftRadius: 55, borderTopRightRadius: 55 }}>
-                <Text numberOfLines={2} style={{ fontSize: 25 }}>
-                    {name}
-                </Text>
-
-                <Text style={{ fontSize: 18, fontWeight: "900" }}>
-                    £{price}
-                </Text>
-
-                <Text numberOfLines={8} style={{ letterSpacing: 1, lineHeight: 20, marginVertical: 15 }}>
-                    {description}
-                </Text>
-
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: "5" }}>
-                    <Text style={{ color: colors.color3, fontWeight: "100" }}>Quantity</Text>
-                    <View style={{ width: 80, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                        <TouchableOpacity onPress={decrementQty}>
-                            <Avatar.Icon icon={"minus"} {...iconOptions} />
-                        </TouchableOpacity>
-                        <Text style={style.quantity}>
-                            {quantity}
+                    <View style={{ backgroundColor: colors.color2, padding: 35, flex: 1, marginTop: -380, borderTopLeftRadius: 55, borderTopRightRadius: 55 }}>
+                        <Text numberOfLines={2} style={{ fontSize: 25 }}>
+                            {product.name}
                         </Text>
-                        <TouchableOpacity onPress={incrementQty}>
-                            <Avatar.Icon icon={"plus"} {...iconOptions} />
+
+                        <Text style={{ fontSize: 18, fontWeight: "900" }}>
+                            £{product.price}
+                        </Text>
+
+                        <Text numberOfLines={8} style={{ letterSpacing: 1, lineHeight: 20, marginVertical: 15 }}>
+                            {product.description}
+                        </Text>
+
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: "5" }}>
+                            <Text style={{ color: colors.color3, fontWeight: "100" }}>Quantity</Text>
+                            <View style={{ width: 80, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                                <TouchableOpacity onPress={decrementQty}>
+                                    <Avatar.Icon icon={"minus"} {...iconOptions} />
+                                </TouchableOpacity>
+                                <Text style={style.quantity}>
+                                    {product.stock}
+                                </Text>
+                                <TouchableOpacity onPress={incrementQty}>
+                                    <Avatar.Icon icon={"plus"} {...iconOptions} />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity activeOpacity={0.9} onPress={addToCartHandler}>
+                            <Button icon={"cart"} textColor={colors.color2} style={style.btn}>
+                                Add To Cart
+                            </Button>
                         </TouchableOpacity>
                     </View>
-                </View>
-
-                <TouchableOpacity activeOpacity={0.9} onPress={addToCartHandler}>
-                    <Button icon={"cart"} textColor={colors.color2} style={style.btn}>
-                        Add To Cart
-                    </Button>
-                </TouchableOpacity>
-            </View>
+                </>
+            )}
         </View>
     );
 };

@@ -1,57 +1,28 @@
-import axios from "axios";
-import { server } from "../store"
+import { axiosApiRequest } from "../api/axiosRequest";
+import { stripePayment } from "./stripeActions";
 
 export const placeOrder = (orderItems, shippingInfo, paymentMethod, itemsPrice, taxPrice, shippingCharges, totalAmount, paymentInfo) => async (dispatch) => {
-    try {
-        dispatch({
-            type: "placeOrderRequest",
-        });
 
-        const { data } = await axios.post(`${server}/order/new`, { shippingInfo, orderItems, paymentMethod, paymentInfo, itemsPrice, taxPrice, shippingCharges, totalAmount }, {
-            headers: {
-                "Content-Type": "application/json"
-            },
-            withCredentials: true,
-        });
-
-        dispatch({
-            type: "placeOrderSuccess",
-            payload: data.message,
-        });
+    if (paymentMethod === "ONLINE") {
+        paymentInfo = await paymentOrder(dispatch, totalAmount);
     }
 
-    catch (error) {
-        dispatch({
-            type: "placeOrderFail",
-            payload: error.response.data.message,
-        });
-    }
+    const actionTypes = {
+        requestDispatch: "placeOrderRequest",
+        successDispatch: "placeOrderSuccess",
+        errorDispatch: "placeOrderFail",
+    };
+
+    await axiosApiRequest("post", "/order/new", { shippingInfo, orderItems, paymentMethod, paymentInfo, itemsPrice, taxPrice, shippingCharges, totalAmount }, "application/json", dispatch, actionTypes, "message");
 };
 
-export const paymentOrder = (totalAmount) => async (dispatch) => {
-    try {
-        dispatch({
-            type: "paymentOrderRequest",
-        });
+const paymentOrder = (dispatch, totalAmount) => async () => {
+    const actionTypes = {
+        requestDispatch: "paymentOrderRequest",
+        successDispatch: "paymentOrderSuccess",
+        errorDispatch: "paymentOrderFail",
+    };
 
-        const { data } = await axios.post(`${server}/order/payment`, { totalAmount }, {
-            headers: {
-                "Content-Type": "application/json"
-            },
-            withCredentials: true,
-        });
-
-        dispatch({
-            type: "paymentOrderSuccess",
-            payload: data.client_secret,
-        });
-    }
-
-    catch (error) {
-        dispatch({
-            type: "paymentOrderFail",
-            payload: error.response.data.message,
-        });
-    }
+    const client_secret = await axiosApiRequest("post", `/order/payment`, { totalAmount }, "application/json", dispatch, actionTypes, "client_secret", true);
+    return stripePayment(dispatch, client_secret);
 };
-

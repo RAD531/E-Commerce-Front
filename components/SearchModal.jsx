@@ -4,8 +4,9 @@ import { useNavigation } from '@react-navigation/native'
 import { colors } from '../styles/styles';
 import { StatusBar } from 'expo-status-bar';
 import { Headline, Searchbar } from 'react-native-paper';
+import Loader from './Loader';
 
-const SearchModal = ({ searchQuery, setSearchQuery, setActiveSearch, products = [], }) => {
+const SearchModal = ({ searchQuery, setSearchQuery, setActiveSearch, products = [], loading }) => {
 
     const navigate = useNavigation();
 
@@ -28,13 +29,15 @@ const SearchModal = ({ searchQuery, setSearchQuery, setActiveSearch, products = 
             <SafeAreaView>
                 <Searchbar placeholder='Search...' onChangeText={(query) => setSearchQuery(query)} value={searchQuery} style={{ marginTop: 20 }} />
                 <ScrollView>
-                    <View style={{ paddingVertical: 40, paddingHorizontal: 10 }}>
-                        {
-                            products.map((i) => (
-                                <SearchItem key={i._id} imgSrc={i.images[0]?.url} name={i.name} price={i.price} handler={() => navigate.navigate("productdetails", { id: i._id })} />
-                            ))
-                        }
-                    </View>
+                    {loading ? <Loader size='small' /> : (
+                        <View style={{ paddingVertical: 40, paddingHorizontal: 10 }}>
+                            {
+                                products.map((i) => (
+                                    <SearchItem key={i._id} imgSrc={i.images[0]?.url} name={i.name} price={i.price} handler={() => navigate.navigate("productdetails", { id: i._id })} />
+                                ))
+                            }
+                        </View>
+                    )}
                 </ScrollView>
             </SafeAreaView>
         </View>

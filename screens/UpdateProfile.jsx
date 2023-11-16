@@ -1,16 +1,18 @@
 import { View, Text, ScrollView } from 'react-native'
 import React, { useState } from 'react'
-import { colors, defaultStyle, formHeading, inputOptions, formStyles as styles } from '../styles/styles';
+import { colors, defaultStyle, inputOptions, formStyles as styles } from '../styles/styles';
 import { Button, TextInput } from 'react-native-paper';
 import Header from "../components/Header";
 import PageHeading from '../components/PageHeading';
-import { useDispatch, useSelector } from 'react-redux';
-import { useMessageAndErrorGeneral } from '../utils/hooks';
-import { updateProfile } from '../redux/actions/profileActions';
+import { useGetUserQuery } from '../redux/api/apiSlices/userApiSlice';
+import { useUpdateProfileMutation } from '../redux/api/apiSlices/profileApiSlice';
 
 const UpdateProfile = ({ navigation }) => {
 
-    const { user } = useSelector((state) => state.user);
+    const { data, isLoading: isGetProfileLoading } = useGetUserQuery();
+    const user = data?.user;
+
+    const [updateProfile, { isLoading }] = useUpdateProfileMutation();
 
     const [name, setName] = useState(user?.name);
     const [email, setEmail] = useState(user?.email);
@@ -19,13 +21,14 @@ const UpdateProfile = ({ navigation }) => {
     const [country, setCountry] = useState(user?.country);
     const [pinCode, setPinCode] = useState(user?.pinCode.toString());
 
-    const dispatch = useDispatch();
-    const loading = useMessageAndErrorGeneral(dispatch, "profile", navigation, "profile");
-
     const disableBtn = !name || !email || !address || !city || !country || !pinCode;
 
-    const submitHandler = () => {
-        dispatch(updateProfile(name, email, address, city, country, pinCode));
+    const submitHandler = async () => {
+        try {
+            await updateProfile(name, email, address, city, country, pinCode).unwrap();
+        }
+        catch (error) {
+        }
     };
 
     return (
@@ -47,7 +50,7 @@ const UpdateProfile = ({ navigation }) => {
                     <TextInput {...inputOptions} placeholder='Country' value={country} onChangeText={setCountry} />
                     <TextInput {...inputOptions} placeholder='Pin Code' value={pinCode} onChangeText={setPinCode} />
 
-                    <Button loading={loading} textColor={colors.color2} disabled={disableBtn} style={styles.btn} onPress={submitHandler}>
+                    <Button loading={isLoading} textColor={colors.color2} disabled={disableBtn} style={styles.btn} onPress={submitHandler}>
                         <Text>Update</Text>
                     </Button>
                 </View>

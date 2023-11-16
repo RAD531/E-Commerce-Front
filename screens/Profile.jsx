@@ -1,30 +1,34 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { colors, defaultImg, defaultStyle, formHeading } from '../styles/styles';
+import { colors, defaultImg, defaultStyle } from '../styles/styles';
 import { Avatar, Button } from 'react-native-paper';
 import ButtonBox from '../components/ButtonBox';
 import Footer from '../components/Footer';
 import Loader from '../components/Loader';
 import PageHeading from '../components/PageHeading';
-import { useDispatch, useSelector } from 'react-redux';
-import { loadUser, logout } from '../redux/actions/userActions';
-import { useMessageAndErrorGeneral, useMessageAndErrorUser } from '../utils/hooks';
 import { useIsFocused } from '@react-navigation/native';
 import mime from "mime";
-import { updateProfilePicture } from '../redux/actions/profileActions';
+import { useGetUserQuery, useLogOutUserMutation } from '../redux/api/apiSlices/userApiSlice';
+import { useUpdateProfilePictureMutation } from '../redux/api/apiSlices/profileApiSlice';
 
 const Profile = ({ navigation, route }) => {
 
-    const { user } = useSelector((state) => state.user);
+    const { data: userData, isLoading: isGetProfileLoading } = useGetUserQuery();
+    const [logoutUser, { isLoading: isLogoutLoading }] = useLogOutUserMutation();
+    const [updateProfilePicture, { isLoading: isUpdateProfilePicLoading }] = useUpdateProfilePictureMutation();
 
-    const [avatar, setAvatar] = useState(user?.avatar ? user.avatar.url : defaultImg);
-
-    const dispatch = useDispatch();
+    const user = userData?.user;
     const isFocused = useIsFocused();
-    const loading = useMessageAndErrorUser(navigation, dispatch, "login");
 
-    const logoutHandler = () => {
-        dispatch(logout());
+    const [avatar, setAvatar] = useState(user?.avatar?.url || defaultImg);
+
+    const logoutHandler = async () => {
+        try {
+            await logoutUser().unwrap();
+            navigation.navigate("home");
+        }
+        catch (error) {
+        }
     };
 
     const navigateHandler = (text) => {
@@ -47,25 +51,36 @@ const Profile = ({ navigation, route }) => {
         }
     };
 
-    const loadingPic = useMessageAndErrorGeneral(dispatch, "profile", null, null, loadUser);
+    useEffect(() => {
+        if (user?.avatar?.url) {
+            setAvatar(user.avatar.url);
+        }
+    }, [user]);
 
     useEffect(() => {
-        if (route.params?.image) {
-            setAvatar(route.params.image);
+        const updateProfilePic = async () => {
+            if (route.params?.image) {
+                setAvatar(route.params.image);
 
-            // dispatch updatePic here
-            const myForm = new FormData();
-            myForm.append("file", {
-                uri: route.params.image,
-                type: mime.getType(route.params.image),
-                name: route.params.image.split("/").pop()
-            });
+                // dispatch updatePic here
+                const myForm = new FormData();
+                myForm.append("file", {
+                    uri: route.params.image,
+                    type: mime.getType(route.params.image),
+                    name: route.params.image.split("/").pop()
+                });
 
-            dispatch(updateProfilePicture(myForm));
+                try {
+                    await updateProfilePicture(myForm).unwrap();
+                }
+                catch (error) {
+                }
+            }
         }
 
-        dispatch(loadUser());
-    }, [route.params, dispatch, isFocused]);
+        updateProfilePic();
+
+    }, [route.params, isFocused]);
 
     return (
         <>
@@ -76,12 +91,12 @@ const Profile = ({ navigation, route }) => {
 
                 {/* Loading */}
                 {
-                    loading ? <Loader /> : (
+                    isGetProfileLoading || isLogoutLoading ? <Loader /> : (
                         <>
                             <View style={styles.container}>
                                 <Avatar.Image source={{ uri: avatar }} size={100} style={{ backgroundColor: colors.color1 }} />
-                                <TouchableOpacity onPress={() => navigation.navigate("camera", { updateProfile: true })} disabled={loadingPic}>
-                                    <Button disabled={loadingPic} loading={loadingPic} textColor={colors.color1}>
+                                <TouchableOpacity onPress={() => navigation.navigate("camera", { updateProfile: true })} disabled={isUpdateProfilePicLoading}>
+                                    <Button disabled={isUpdateProfilePicLoading} loading={isUpdateProfilePicLoading} textColor={colors.color1}>
                                         Change Photo
                                     </Button>
                                 </TouchableOpacity>

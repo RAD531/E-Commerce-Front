@@ -4,32 +4,32 @@ import { colors, defaultStyle, formHeading, inputOptions, formStyles as formStyl
 import { Avatar, Button, TextInput } from 'react-native-paper';
 import Header from "../../components/Header";
 import PageHeading from '../../components/PageHeading';
+import Loader from '../../components/Loader';
+import { useAddCategoryMutation, useDeleteCategoryMutation, useGetAllCategoriesQuery } from '../../redux/api/apiSlices/categoryApiSlice';
 
 const Categories = ({ navigation }) => {
     const [category, setCategory] = useState("");
-    const loading = false;
 
-    const categories = [
-        {
-            name: "Laptop",
-            _id: "fwejfkjafl",
-        },
-        {
-            name: "Laptop",
-            _id: "esget",
-        },
-        {
-            name: "Laptop",
-            _id: "gw5ey5h5",
-        },
-    ];
+    const { data: categoriesData, isLoading: isCategoriesLoading } = useGetAllCategoriesQuery();
+    const categories = categoriesData?.categories;
 
-    const deleteHandler = (id) => {
-        alert(`Deleting Category, ${id}`);
+    const [deleteCategory, {isLoading: isDeleteCategoryLoading}] = useDeleteCategoryMutation();
+    const [addCategory, {isLoading: isAddCategoryLoading}] = useAddCategoryMutation();
+
+    const deleteHandler = async (id) => {
+        try {
+            await deleteCategory(id).wrap();
+        }
+        catch {
+        }
     };
 
-    const submitHandler = () => {
-        alert("Yeah");
+    const submitHandler = async () => {
+        try {
+            await addCategory(category).wrap();
+        }
+        catch {
+        }
     };
 
     return (
@@ -40,23 +40,29 @@ const Categories = ({ navigation }) => {
             {/* Heading */}
             <PageHeading text={"Cateogories"} paddingTopStyle={70} />
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 20 }}>
-                <View style={{ backgroundColor: colors.color2, padding: 20, minHeight: 400 }}>
-                    {
-                        categories.map(i => (
-                            <CategoryCard name={i.name} id={i._id} key={i._id} deleteHandler={deleteHandler} />
-                        ))
-                    }
-                </View>
-            </ScrollView>
+            {
+                isCategoriesLoading ? <Loader /> : (
+                    <>
+                        <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                            <View style={{ backgroundColor: colors.color2, padding: 20, minHeight: 400 }}>
+                                {
+                                    categories.map(i => (
+                                        <CategoryCard name={i.category} id={i._id} key={i._id} deleteHandler={deleteHandler} />
+                                    ))
+                                }
+                            </View>
+                        </ScrollView>
 
-            <View style={styles.container}>
-                <TextInput {...inputOptions} placeholder='Category' value={category} onChangeText={setCategory} />
+                        <View style={styles.container}>
+                            <TextInput {...inputOptions} placeholder='Add Category' value={category} onChangeText={setCategory} />
 
-                <Button loading={loading} textColor={colors.color2} disabled={!category} style={{ backgroundColor: colors.color1, margin: 20, padding: 6 }} onPress={submitHandler}>
-                    <Text>Add</Text>
-                </Button>
-            </View>
+                            <Button loading={isAddCategoryLoading} textColor={colors.color2} disabled={!category} style={{ backgroundColor: colors.color1, margin: 20, padding: 6 }} onPress={submitHandler}>
+                                <Text>Add</Text>
+                            </Button>
+                        </View>
+                    </>
+                )
+            }
         </View>
     )
 }
