@@ -1,10 +1,13 @@
 import { axiosApiRequest } from "../api/axiosRequest";
 import { stripePayment } from "./stripeActions";
 
-export const placeOrder = (orderItems, shippingInfo, paymentMethod, itemsPrice, taxPrice, shippingCharges, totalAmount, paymentInfo) => async (dispatch) => {
+export const placeOrder = (orderItems, shippingInfo, paymentMethod, itemsPrice, taxPrice, shippingCharges, totalAmount) => async (dispatch) => {
+
+    let paymentInfo = null;
 
     if (paymentMethod === "ONLINE") {
         paymentInfo = await paymentOrder(dispatch, totalAmount);
+        console.log(JSON.stringify(paymentInfo));
     }
 
     const actionTypes = {
@@ -13,10 +16,12 @@ export const placeOrder = (orderItems, shippingInfo, paymentMethod, itemsPrice, 
         errorDispatch: "placeOrderFail",
     };
 
-    await axiosApiRequest("post", "/order/new", { shippingInfo, orderItems, paymentMethod, paymentInfo, itemsPrice, taxPrice, shippingCharges, totalAmount }, "application/json", dispatch, actionTypes, "message");
+    if (paymentInfo !== undefined || paymentInfo) {
+        await axiosApiRequest("post", "/order/new", { shippingInfo, orderItems, paymentMethod, paymentInfo, itemsPrice, taxPrice, shippingCharges, totalAmount }, "application/json", dispatch, actionTypes, "message");
+    }
 };
 
-const paymentOrder = (dispatch, totalAmount) => async () => {
+const paymentOrder = async (dispatch, totalAmount) => {
     const actionTypes = {
         requestDispatch: "paymentOrderRequest",
         successDispatch: "paymentOrderSuccess",

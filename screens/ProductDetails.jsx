@@ -56,7 +56,7 @@ const ProductDetails = ({ route: { params } }) => {
         dispatch({
             type: "addToCart",
             payload: {
-                product: params.id, name: product.name, price: product.price, image: product.images[0]?.url, stock: product.stock, quantity: product.quantity
+                product: params.id, name: product.name, price: product.price, image: product.images[0]?.url, stock: product.stock, quantity: quantity
             },
         });
 
@@ -95,7 +95,7 @@ const ProductDetails = ({ route: { params } }) => {
                                     <Avatar.Icon icon={"minus"} {...iconOptions} />
                                 </TouchableOpacity>
                                 <Text style={style.quantity}>
-                                    {product.stock}
+                                    {quantity}
                                 </Text>
                                 <TouchableOpacity onPress={incrementQty}>
                                     <Avatar.Icon icon={"plus"} {...iconOptions} />

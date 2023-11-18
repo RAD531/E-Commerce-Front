@@ -8,7 +8,7 @@ export const orderApiSlice = baseApi.injectEndpoints({
             }),
             providesTags: ['Order'],
         }),
-        
+
         processOrder: builder.mutation({
             query: (id) => ({
                 url: `/order/order/${id}`,
@@ -16,7 +16,28 @@ export const orderApiSlice = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Order'],
         }),
+        paymentOrder: builder.mutation({
+            query: ({ totalAmount }) => ({
+                url: '/order/payment',
+                method: 'POST',
+                body: { totalAmount },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }),
+        }),
+        placeOrder: builder.mutation({
+            query: ({ shippingInfo, orderItems, paymentMethod, paymentInfo, itemsPrice, taxPrice, shippingCharges, totalAmount }) => ({
+                url: '/order/new',
+                method: 'POST',
+                body: { shippingInfo, orderItems, paymentMethod, paymentInfo, itemsPrice, taxPrice, shippingCharges, totalAmount },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }),
+            invalidatesTags: ['Order'],
+        }),
     }),
 });
 
-export const { useGetOrdersQuery, useProcessOrderMutation } = orderApiSlice;
+export const { useGetOrdersQuery, useProcessOrderMutation, usePaymentOrderMutation, usePlaceOrderMutation } = orderApiSlice;

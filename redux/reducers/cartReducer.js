@@ -7,7 +7,9 @@ export const cartReducer = createReducer({ cartItems: [] }, builder => {
             const isExist = state.cartItems.find(i => i.product === item.product);
 
             if (isExist) {
-                state.cartItems = state.cartItems.filter(i => i.product === isExist.product ? item : i);
+                state.cartItems = state.cartItems.map(i =>
+                    i.product === isExist.product ? { ...item } : i
+                );
             }
 
             else {
@@ -21,12 +23,4 @@ export const cartReducer = createReducer({ cartItems: [] }, builder => {
         .addCase("clearCart", (state) => {
             state.cartItems = [];
         })
-
-    builder.addCase("clearError", (state, action) => {
-        state.error = null;
-    });
-
-    builder.addCase("clearMessage", (state, action) => {
-        state.message = null;
-    });
 });

@@ -6,7 +6,7 @@ export const toastMiddleware = store => next => action => {
         const { meta, payload } = action;
         const { dispatch } = store;
 
-        // console.log('Handling query or mutation request:', JSON.stringify(action));
+        // console.log('\n Handling query or mutation request:', JSON.stringify(action));
 
         if (meta.requestStatus === "fulfilled" && payload && payload.message) {
             dispatch({ type: "addToMessage", payload: payload.message });

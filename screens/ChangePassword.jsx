@@ -14,9 +14,6 @@ const ChangePassword = () => {
 
     const submitHandler = async () => {
         try {
-            console.log("Old Password:", oldPassword);
-            console.log("New Password:", newPassword);
-
             await changePassword({ oldPassword: oldPassword, newPassword: newPassword }).unwrap();
             setOldPassword("");
             setNewPassword("");

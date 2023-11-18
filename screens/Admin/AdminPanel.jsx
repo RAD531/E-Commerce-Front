@@ -8,9 +8,10 @@ import ButtonBox from '../../components/ButtonBox';
 import ProductListHeading from '../../components/ProductListHeading';
 import ProductListItem from '../../components/ProductListItem';
 import Chart from '../../components/Chart';
-import { useGetAdminProductsQuery } from '../../redux/api/apiSlices/productApiSlice';
+import { useDeleteProductMutation, useGetAdminProductsQuery } from '../../redux/api/apiSlices/productApiSlice';
 
 const AdminPanel = ({ navigation }) => {
+  const [deleteProduct, { isLoading: isUpdateDeleteLoading }] = useDeleteProductMutation();
   const { data: productsData, isLoading: isProductsLoading } = useGetAdminProductsQuery();
   const products = productsData?.products;
   const outOfStock = productsData?.outOfStock;
@@ -33,8 +34,12 @@ const AdminPanel = ({ navigation }) => {
     }
   };
 
-  const deleteProductHandler = (id) => {
-    console.log(`Deleting Product with ID: ${id}`)
+  const deleteProductHandler = async (id) => {
+    try {
+      await deleteProduct(id).unwrap();
+    }
+    catch {
+    }
   };
 
   return (
@@ -62,13 +67,15 @@ const AdminPanel = ({ navigation }) => {
           <ProductListHeading />
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View>
-              {
-                products.map((item, index) => (
-                  <ProductListItem key={item._id} i={index} id={item._id} price={item.price} stock={item.stock} name={item.name} category={item.category?.category} imgSrc={item.images[0].url} navigate={navigation} deleteHandler={deleteProductHandler} />
-                ))
-              }
-            </View>
+            {isUpdateDeleteLoading ? <Loader /> : (
+              <View>
+                {
+                  products.map((item, index) => (
+                    <ProductListItem key={item._id} i={index} id={item._id} price={item.price} stock={item.stock} name={item.name} category={item.category?.category} imgSrc={item?.images[0]?.url} navigate={navigation} deleteHandler={deleteProductHandler} />
+                  ))
+                }
+              </View>
+            )}
           </ScrollView>
         </>
       )}

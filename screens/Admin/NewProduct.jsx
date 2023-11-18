@@ -6,27 +6,49 @@ import { colors, defaultStyle, inputOptions, inputStyling } from '../../styles/s
 import Loader from '../../components/Loader'
 import { Avatar, Button, TextInput } from 'react-native-paper'
 import SelectComponent from '../../components/SelectComponent'
+import { useGetAllCategoriesQuery } from '../../redux/api/apiSlices/categoryApiSlice';
+import mime from "mime";
+import { useAddProductMutation } from '../../redux/api/apiSlices/productApiSlice'
 
 const NewProduct = ({ navigation, route }) => {
 
-    const loading = false;
+    const [visible, setVisible] = useState(false);
 
     const [image, setImage] = useState("");
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
     const [stock, setStock] = useState("");
-    const [category, setCategory] = useState("Laptop");
-    const [categoryID, setCategoryID] = useState("");
-    const [categories, setCategories] = useState([
-        { _id: "fejlfjew", category: "Laptop" },
-        { _id: "gewgweg", category: "Footwear" },
-        { _id: "gwaafgr", category: "Clothes" },
-    ]);
-    const [visible, setVisible] = useState(false);
+    const [category, setCategory] = useState("Choose Category");
+    const [categoryID, setCategoryID] = useState(undefined);
 
-    const submitHandler = () => {
+    const { data: categoriesData, isLoading: isCategoriesLoading } = useGetAllCategoriesQuery();
+    const categories = categoriesData?.categories;
 
+    const [addProduct, { isLoading: isAddProductLoading }] = useAddProductMutation();
+
+    const entryCondition = !name || !description || !price || !stock || !image;
+
+    const submitHandler = async () => {
+        const myForm = new FormData();
+        myForm.append("name", name);
+        myForm.append("description", description);
+        myForm.append("price", price);
+        myForm.append("stock", stock);
+        myForm.append("file", {
+            uri: image,
+            type: mime.getType(image),
+            name: image.split("/").pop(),
+        });
+
+        if (categoryID) myForm.append("category", categoryID);
+
+        try {
+            await addProduct(myForm).unwrap();
+            navigation.navigate("adminpanel");
+        }
+        catch {
+        }
     };
 
     useEffect(() => {
@@ -44,7 +66,7 @@ const NewProduct = ({ navigation, route }) => {
                 <PageHeading text={"New Product"} paddingTopStyle={70} />
 
                 {
-                    loading ? <Loader /> : (
+                    isCategoriesLoading ? <Loader /> : (
                         <ScrollView style={{ padding: 20, elevation: 10, borderRadius: 10, backgroundColor: colors.color3 }}>
                             <View style={{ justifyContent: "center", height: 650 }}>
 
@@ -64,7 +86,7 @@ const NewProduct = ({ navigation, route }) => {
                                     {category}
                                 </Text>
 
-                                <Button textColor={colors.color2} style={{ backgroundColor: colors.color1, margin: 20, padding: 6 }} onPress={submitHandler} loading={loading} disabled={loading}>
+                                <Button textColor={colors.color2} style={{ backgroundColor: colors.color1, margin: 20, padding: 6 }} onPress={submitHandler} loading={isAddProductLoading} disabled={entryCondition || isAddProductLoading}>
                                     Create
                                 </Button>
                             </View>

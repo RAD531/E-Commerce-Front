@@ -7,37 +7,21 @@ import { RadioButton, Button } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { paymentOrder, placeOrder } from '../redux/actions/orderActions';
 import { useMessageAndError } from "../utils/hooks";
+import OrderButton from '../components/OrderButton';
 
 const Payment = ({ navigation, route }) => {
 
-    const Payment = [paymentMethod, setPaymentMethod] = useState("COD");
-
-    const dispatch = useDispatch();
-    const loading = useMessageAndError(dispatch, navigation, "profile", true, "order", () => ({ type: "clearCart" }));
-
     const { isAuthenticated, user } = useSelector((state) => state.user);
-    // const { paymentClientSecret } = useSelector((state) => state.order);
     const { cartItems } = useSelector((state) => state.cart);
 
-    const redirectToLogin = () => {
-        navigation.navigate("login");
-    };
-
-    const orderAndPaymentHandler = () => {
-        const shippingInfo = {
-            address: user.address,
-            city: user.city,
-            country: user.country,
-            pinCode: user.pinCode,
-        }
-
-        const itemsPrice = route.params.itemsPrice;
-        const shippingCharges = route.params.shippingCharges;
-        const taxPrice = route.params.tax;
-        const totalAmount = route.params.totalAmount;
-
-        dispatch(placeOrder(cartItems, shippingInfo, paymentMethod, itemsPrice, taxPrice, shippingCharges, totalAmount, paymentInfo));
-    };
+    const [paymentMethod, setPaymentMethod] = useState("COD");
+    const [items] = useState({
+        orderItems: cartItems,
+        itemsPrice: route.params.itemsPrice,
+        shippingCharges: route.params.shippingCharges,
+        taxPrice: route.params.tax,
+        totalAmount: route.params.totalAmount,
+    });
 
     return (
         <View style={defaultStyle}>
@@ -58,13 +42,11 @@ const Payment = ({ navigation, route }) => {
                 </RadioButton.Group>
             </View>
 
-            <TouchableOpacity onPress={!isAuthenticated ? redirectToLogin : () => orderAndPaymentHandler()}>
-                <Button loading={loading} disabled={loading} style={styles.btn} textColor={colors.color2} icon={paymentMethod === "COD" ? "check-circle" : "circle-multiple-outline"}>
-                    {
-                        paymentMethod === "COD" ? "Place Order" : "Pay"
-                    }
-                </Button>
-            </TouchableOpacity>
+            {
+                !isAuthenticated ? null : (
+                    <OrderButton paymentMethod={paymentMethod} user={user} items={items} navigate={navigation} />
+                )
+            }
         </View>
     )
 }
@@ -90,12 +72,6 @@ const styles = StyleSheet.create({
         textTransform: "uppercase",
         color: colors.color2
     },
-    btn: {
-        backgroundColor: colors.color3,
-        borderRadius: 100,
-        margin: 10,
-        padding: 5
-    }
 });
 
 export default Payment
